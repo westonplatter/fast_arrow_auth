@@ -1,4 +1,4 @@
-config.dev.*.ini
+config.dev.*
 config.test.ini
 *.csv
 
