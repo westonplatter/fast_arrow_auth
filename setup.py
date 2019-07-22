@@ -31,8 +31,6 @@ deps = [
     'deprecation',
     'pathlib2',
     'requests>=2.20.0',
-    'pandas>=0.23.2',
-    'numpy',
     'yarl',
     'urllib3>=1.24.2'
 ]
@@ -48,27 +46,26 @@ test_deps = [
 ]
 
 
-setup(name='fast_arrow',
+setup(name='fast_arrow_auth',
     version=version_contents['VERSION'],
-    description='A simple yet robust API client for Robinhood',
+    description="A library to handle authentication with Robinhood's API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Weston Platter',
     author_email='westonplatter@gmail.com',
-    url='https://github.com/westonplatter/fast_arrow/',
+    url='https://github.com/westonplatter/fast_arrow_auth/',
     license='MIT License',
     python_requires=">=3.5",
     packages=[
-        'fast_arrow',
-        'fast_arrow.resources',
-        'fast_arrow.option_strategies'
+        'fast_arrow_auth',
+        'fast_arrow_auth.resources',
     ],
-    package_data={'fast_arrow': ['ssl_certs/certs.pem']},
+    package_data={'fast_arrow_auth': ['ssl_certs/certs.pem']},
     install_requires=deps,
     tests_require=test_deps,
     cmdclass={'test': PyTest},
     project_urls={
-        'Issue Tracker': 'https://github.com/westonplatter/fast_arrow/issues',
-        'Source Code': 'https://github.com/westonplatter/fast_arrow',
+        'Issue Tracker': 'https://github.com/westonplatter/fast_arrow_auth/issues',
+        'Source Code': 'https://github.com/westonplatter/fast_arrow_auth',
     }
 )
