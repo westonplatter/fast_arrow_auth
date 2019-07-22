@@ -1,7 +1,9 @@
+import json
 import os
 import uuid
 
 import requests
+
 from fast_arrow.util import get_last_path
 from fast_arrow.resources.account import Account
 from fast_arrow.exceptions import AuthenticationError
@@ -74,8 +76,8 @@ class Client(object):
         attempts = 1
         while attempts <= HTTP_ATTEMPTS_MAX:
             try:
-                res = requests.post(url, headers=headers, data=payload,
-                                    timeout=15, verify=self.certs)
+                import pdb; pdb.set_trace()
+                res = requests.post(url, headers=headers, data=json.dumps(payload), timeout=15, verify=self.certs)
                 res.raise_for_status()
                 if res.headers['Content-Length'] == '0':
                     return None
@@ -97,13 +99,13 @@ class Client(object):
             "Accept-Encoding": "gzip, deflate",
             "Accept-Language": ("en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, " +
                                 "nl;q=0.6, it;q=0.5"),
+            "Content-Type": "application/json",
             "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) " +
                            "AppleWebKit/537.36 (KHTML, like Gecko) " +
                            "Chrome/68.0.3440.106 Safari/537.36"),
-
         }
         if bearer:
-            headers["Authorization"] = "Bearer {0}".format(bearer)
+            headers["Authorization"] = "Bearer {}".format(bearer)
         if url == "https://api.robinhood.com/options/orders/":
             headers["Content-Type"] = "application/json; charset=utf-8"
         return headers
@@ -112,13 +114,15 @@ class Client(object):
         '''
         Login using username and password
         '''
+
         data = {
-            "device_token": uuid.uuid4(),
-            "grant_type": "password",
-            "scope": "internal",
             "client_id": CLIENT_ID,
+            # @todo - handle how the device_token value decided and set
+            "device_token": "",
             "expires_in": 86400,
+            "grant_type": "password",
             "password": password,
+            "scope": "internal",
             "username": username
         }
         if mfa_code is not None:
