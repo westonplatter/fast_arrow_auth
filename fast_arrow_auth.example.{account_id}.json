@@ -3,5 +3,6 @@
     "access_token": "some_access_token_value______abcdefghijklmnopqrstuvwxyz",
     "refresh_token": "some_resfresh_token_value______abcdefghijklmnopqrstuvwxyz",
     "scope": "internal",
-    "token_type": "Bearer"
+    "token_type": "Bearer",
+    "device_token": "257615fb-fake-4621-8ad7-3af7f7d4348a"
 }

@@ -17,12 +17,13 @@ HTTP_ATTEMPTS_MAX = 2
 class Client(object):
     def __init__(self, **kwargs):
         self.options = kwargs
+        self.device_token = self.options.get("device_token")
         self.account_id = None
         self.account_url = None
         self.access_token = None
         self.token_type = None
         self.refresh_token = None
-        self.mfa_code = None
+        self.mfa_code = self.options.get("mfa_code")
         self.scope = None
         self.authenticated = False
         self.certs = os.path.join(
@@ -34,7 +35,8 @@ class Client(object):
             "access_token": self.access_token,
             "refresh_token": self.refresh_token,
             "scope": self.scope,
-            "token_type": self.token_type
+            "token_type": self.token_type,
+            "device_token": self.device_token,
         }
 
     def write_credentials_to_file(self, filename):
@@ -48,8 +50,8 @@ class Client(object):
         '''
         if "username" in self.options and "password" in self.options:
             kwargs = {
-                "mfa_code": self.options.get("mfa_code"),
-                "device_token": self.options.get("device_token"),
+                "mfa_code": self.mfa_code,
+                "device_token": self.device_token,
             }
 
             self.login_oauth2(
