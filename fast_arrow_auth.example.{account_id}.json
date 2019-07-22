@@ -1,0 +1,7 @@
+{
+    "account_id": "12345678",
+    "access_token": "some_access_token_value______abcdefghijklmnopqrstuvwxyz",
+    "refresh_token": "some_resfresh_token_value______abcdefghijklmnopqrstuvwxyz",
+    "scope": "internal",
+    "token_type": "Bearer"
+}
