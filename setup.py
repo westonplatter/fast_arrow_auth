@@ -18,7 +18,7 @@ class PyTest(TestCommand):
 
 
 version_contents = {}
-with open("fast_arrow/version.py", "r", encoding='utf-8') as f:
+with open("fast_arrow_auth/version.py", "r", encoding='utf-8') as f:
     exec(f.read(), version_contents)
 
 

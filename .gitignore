@@ -1,6 +1,5 @@
-config.debug.ini
+config.dev.*.ini
 config.test.ini
-config.dev.ini
 *.csv
 
 # Byte-compiled / optimized / DLL files
