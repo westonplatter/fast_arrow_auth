@@ -4,10 +4,10 @@ import uuid
 
 import requests
 
-from fast_arrow.util import get_last_path
-from fast_arrow.resources.account import Account
-from fast_arrow.exceptions import AuthenticationError
-from fast_arrow.exceptions import NotImplementedError
+from fast_arrow_auth.util import get_last_path
+from fast_arrow_auth.resources.account import Account
+from fast_arrow_auth.exceptions import AuthenticationError
+from fast_arrow_auth.exceptions import NotImplementedError
 
 CLIENT_ID = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 
@@ -15,28 +15,50 @@ HTTP_ATTEMPTS_MAX = 2
 
 
 class Client(object):
-
     def __init__(self, **kwargs):
         self.options = kwargs
+        self.device_token = self.options.get("device_token")
         self.account_id = None
         self.account_url = None
         self.access_token = None
+        self.token_type = None
         self.refresh_token = None
-        self.mfa_code = None
+        self.mfa_code = self.options.get("mfa_code")
         self.scope = None
         self.authenticated = False
         self.certs = os.path.join(
             os.path.dirname(__file__), 'ssl_certs/certs.pem')
+
+    def gen_credentials(self):
+        return {
+            "account_id": self.account_id,
+            "access_token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "scope": self.scope,
+            "token_type": self.token_type,
+            "device_token": self.device_token,
+        }
+
+    def write_credentials_to_file(self, filename):
+        creds = self.gen_credentials()
+        with open(filename, "w") as f:
+            f.write(json.dumps(creds, indent=4))
 
     def authenticate(self):
         '''
         Authenticate using data in `options`
         '''
         if "username" in self.options and "password" in self.options:
+            kwargs = {
+                "mfa_code": self.mfa_code,
+                "device_token": self.device_token,
+            }
+
             self.login_oauth2(
                 self.options["username"],
                 self.options["password"],
-                self.options.get('mfa_code'))
+                kwargs)
+
         elif "access_token" in self.options:
             if "refresh_token" in self.options:
                 self.access_token = self.options["access_token"]
@@ -46,49 +68,29 @@ class Client(object):
             self.authenticated = False
         return self.authenticated
 
-    def get(self, url=None, params=None, retry=True):
+    def get(self, url, params=None):
         '''
         Execute HTTP GET
         '''
         headers = self._gen_headers(self.access_token, url)
-        attempts = 1
-        while attempts <= HTTP_ATTEMPTS_MAX:
-            try:
-                res = requests.get(url,
-                                   headers=headers,
-                                   params=params,
-                                   timeout=15,
-                                   verify=self.certs)
-                res.raise_for_status()
-                return res.json()
-            except requests.exceptions.RequestException as e:
-                attempts += 1
-                if res.status_code in [400]:
-                    raise e
-                elif retry and res.status_code in [403]:
-                    self.relogin_oauth2()
+        res = requests.get(url, headers=headers)
+        return res.json()
 
-    def post(self, url=None, payload=None, retry=True):
+    def post(self, url, payload=None, extra_headers={}):
         '''
         Execute HTTP POST
         '''
-        headers = self._gen_headers(self.access_token, url)
-        attempts = 1
-        while attempts <= HTTP_ATTEMPTS_MAX:
-            try:
-                import pdb; pdb.set_trace()
-                res = requests.post(url, headers=headers, data=json.dumps(payload), timeout=15, verify=self.certs)
-                res.raise_for_status()
-                if res.headers['Content-Length'] == '0':
-                    return None
-                else:
-                    return res.json()
-            except requests.exceptions.RequestException as e:
-                attempts += 1
-                if res.status_code in [400, 429]:
-                    raise e
-                elif retry and res.status_code in [403]:
-                    self.relogin_oauth2()
+        default_headers = self._gen_headers(self.access_token, url)
+        headers = {**default_headers, **extra_headers}
+        res = requests.post(url,
+                            headers=headers,
+                            data=json.dumps(payload),
+                            timeout=15,
+                            verify=self.certs)
+        if res.headers['Content-Length'] == '0':
+            return None
+        else:
+            return res.json()
 
     def _gen_headers(self, bearer, url):
         '''
@@ -106,49 +108,88 @@ class Client(object):
         }
         if bearer:
             headers["Authorization"] = "Bearer {}".format(bearer)
-        if url == "https://api.robinhood.com/options/orders/":
-            headers["Content-Type"] = "application/json; charset=utf-8"
+        if url == 'https://api.robinhood.com/user/':
+            del headers["Content-Type"]
         return headers
 
-    def login_oauth2(self, username, password, mfa_code=None):
+    def login_oauth2(self, username, password, kwargs):
         '''
         Login using username and password
         '''
 
+        if kwargs["device_token"]:
+            device_token = kwargs["device_token"]
+        else:
+            device_token = str(uuid.uuid4())
+
+        if "challenge_type" in kwargs:
+            challenge_type = kwargs["challenge_type"]
+        else:
+            challenge_type = "sms"
+
         data = {
             "client_id": CLIENT_ID,
-            # @todo - handle how the device_token value decided and set
-            "device_token": "",
+            "device_token": device_token,
             "expires_in": 86400,
             "grant_type": "password",
             "password": password,
             "scope": "internal",
-            "username": username
+            "username": username,
+            "challenge_type": challenge_type
         }
-        if mfa_code is not None:
-            data['mfa_code'] = mfa_code
+
+        if kwargs["mfa_code"]:
+            mfa_code = kwargs["mfa_code"]
+            data["mfa_code"] = mfa_code
+
         url = "https://api.robinhood.com/oauth2/token/"
-        res = self.post(url, payload=data, retry=False)
 
-        if res is None:
-            if mfa_code is None:
-                msg = ("Client.login_oauth2(). Could not authenticate. Check "
-                       + "username and password.")
-                raise AuthenticationError(msg)
-            else:
-                msg = ("Client.login_oauth2(). Could not authenticate. Check" +
-                       "username and password, and enter a valid MFA code.")
-                raise AuthenticationError(msg)
-        elif res.get('mfa_required') is True:
-            msg = "Client.login_oauth2(). Couldn't authenticate. MFA required."
-            raise AuthenticationError(msg)
+        res = self.post(url, payload=data)
 
-        self.access_token = res["access_token"]
-        self.refresh_token = res["refresh_token"]
-        self.mfa_code = res["mfa_code"]
-        self.scope = res["scope"]
-        self.__set_account_info()
-        return self.authenticated
+        if "detail" in res:
+            challenge_started_text = "Request blocked, challenge issued."
+            if res["detail"] == challenge_started_text:
+                challenge = res["challenge"]
+                challenge_url = (
+                    "https://api.robinhood.com/challenge/{}/respond/"
+                    .format(challenge["id"]))
+
+                print("Input challenge code from '{}'".format(challenge_type))
+                user_input_response_code = input()
+
+                body = {"response": str(user_input_response_code)}
+                data_challenge = self.post(challenge_url, body)
+                if data_challenge["status"] == "validated":
+                    challenge_id = data_challenge["id"]
+                else:
+                    print("challenge response was not accepted")
+
+                extra_headers = {
+                    "X-ROBINHOOD-CHALLENGE-RESPONSE-ID": challenge_id
+                }
+
+                res = self.post(url, payload=data, extra_headers=extra_headers)
+
+                self.token_type = res["token_type"]
+                self.access_token = res["access_token"]
+                self.refresh_token = res["refresh_token"]
+                self.mfa_code = res["mfa_code"]
+                self.scope = res["scope"]
+                self.__set_account_info()
+                filename = "fast_arrow_auth.{}.json".format(self.account_id)
+                self.write_credentials_to_file(filename)
+                return self.authenticated
+
+        else:
+            self.token_type = res["token_type"]
+            self.access_token = res["access_token"]
+            self.refresh_token = res["refresh_token"]
+            self.mfa_code = res["mfa_code"]
+            self.scope = res["scope"]
+            self.__set_account_info()
+            filename = "fast_arrow_auth.{}.json".format(self.account_id)
+            self.write_credentials_to_file(filename)
+            return self.authenticated
 
     def __set_account_info(self):
         account_urls = Account.all_urls(self)
@@ -176,7 +217,7 @@ class Client(object):
             "client_id": CLIENT_ID,
             "expires_in": 86400,
         }
-        res = self.post(url, payload=data, retry=False)
+        res = self.post(url, payload=data)
         self.access_token = res["access_token"]
         self.refresh_token = res["refresh_token"]
         self.mfa_code = res["mfa_code"]
@@ -192,7 +233,7 @@ class Client(object):
             "token": self.refresh_token,
         }
         res = self.post(url, payload=data)
-        if res is None:
+        if res is None or res == {}:
             self.account_id = None
             self.account_url = None
             self.access_token = None

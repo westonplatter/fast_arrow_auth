@@ -1,6 +1,8 @@
-config.dev.*.ini
+config.dev.*
 config.test.ini
 *.csv
+fast_arrow_auth.*
+!fast_arrow_auth.example.{account_id}.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

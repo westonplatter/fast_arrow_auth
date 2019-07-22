@@ -7,13 +7,19 @@ print("----- running {}".format(__file__))
 #
 # get the authentication configs
 #
-config_file = "config.dev.ini"
+config_file = "config.dev.includes_device_token.ini"
 config = configparser.ConfigParser()
 config.read(config_file)
-username = config['account']['username']
-password = config['account']['password']
 
-client = Client(username=username, password=password)
+username        = config['account']['username']
+password        = config['account']['password']
+device_token    = config['account']['device_token']
+
+client = Client(
+    username=username,
+    password=password,
+    device_token=device_token)
+
 result = client.authenticate()
 
 print("Authenticated successfully = {}".format(result))

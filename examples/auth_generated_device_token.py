@@ -7,7 +7,7 @@ print("----- running {}".format(__file__))
 #
 # get the authentication configs
 #
-config_file = "config.dev.ini"
+config_file = "config.dev.without_device_token.ini"
 config = configparser.ConfigParser()
 config.read(config_file)
 username = config['account']['username']
