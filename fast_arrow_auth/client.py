@@ -20,12 +20,27 @@ class Client(object):
         self.account_id = None
         self.account_url = None
         self.access_token = None
+        self.token_type = None
         self.refresh_token = None
         self.mfa_code = None
         self.scope = None
         self.authenticated = False
         self.certs = os.path.join(
             os.path.dirname(__file__), 'ssl_certs/certs.pem')
+
+    def gen_credentials(self):
+        return {
+            "account_id": self.account_id,
+            "access_token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "scope": self.scope,
+            "token_type": self.token_type
+        }
+
+    def write_credentials_to_file(self, filename):
+        creds = self.gen_credentials()
+        with open(filename, "w") as f:
+            f.write(json.dumps(creds, indent=4))
 
     def authenticate(self):
         '''
@@ -133,7 +148,9 @@ class Client(object):
             challenge_started_text = "Request blocked, challenge issued."
             if res["detail"] == challenge_started_text:
                 challenge = res["challenge"]
-                challenge_url = "https://api.robinhood.com/challenge/{}/respond/".format(challenge["id"])
+                challenge_url = (
+                    "https://api.robinhood.com/challenge/{}/respond/"
+                    .format(challenge["id"]))
 
                 print("Input challenge code from '{}'".format(challenge_type))
                 user_input_response_code = input()
@@ -145,36 +162,31 @@ class Client(object):
                 else:
                     print("challenge response was not accepted")
 
-                extra_headers = {"X-ROBINHOOD-CHALLENGE-RESPONSE-ID": challenge_id}
+                extra_headers = {
+                    "X-ROBINHOOD-CHALLENGE-RESPONSE-ID": challenge_id
+                }
 
                 res = self.post(url, payload=data, extra_headers=extra_headers)
 
+                self.token_type = res["token_type"]
                 self.access_token = res["access_token"]
                 self.refresh_token = res["refresh_token"]
                 self.mfa_code = res["mfa_code"]
                 self.scope = res["scope"]
                 self.__set_account_info()
+                filename = "fast_arrow_auth.{}.json".format(self.account_id)
+                self.write_credentials_to_file(filename)
                 return self.authenticated
 
         else:
-            # if res is None:
-            #     if mfa_code is None:
-            #         msg = ("Client.login_oauth2(). Could not authenticate. Check "
-            #                + "username and password.")
-            #         raise AuthenticationError(msg)
-            #     else:
-            #         msg = ("Client.login_oauth2(). Could not authenticate. Check" +
-            #                "username and password, and enter a valid MFA code.")
-            #         raise AuthenticationError(msg)
-            # elif res.get('mfa_required') is True:
-            #     msg = "Client.login_oauth2(). Couldn't authenticate. MFA required."
-            #     raise AuthenticationError(msg)
-
+            self.token_type = res["token_type"]
             self.access_token = res["access_token"]
             self.refresh_token = res["refresh_token"]
             self.mfa_code = res["mfa_code"]
             self.scope = res["scope"]
             self.__set_account_info()
+            filename = "fast_arrow_auth.{}.json".format(self.account_id)
+            self.write_credentials_to_file(filename)
             return self.authenticated
 
     def __set_account_info(self):

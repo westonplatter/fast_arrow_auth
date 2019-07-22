@@ -1,6 +1,7 @@
 config.dev.*
 config.test.ini
 *.csv
+fast_arrow_auth.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
