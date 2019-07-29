@@ -3,6 +3,7 @@ config.test.ini
 *.csv
 fast_arrow_auth.*
 !fast_arrow_auth.example.{account_id}.json
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
