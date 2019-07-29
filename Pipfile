@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = ">=2.20.0"
+yarl = "*"
+"pathlib2" = "*"
+datetime = "*"
+deprecation = "*"
+urllib3 = ">=1.24.2"
+
+[dev-packages]
+vcrpy = "*"
+pytest = "*"
+pytest-cov = "*"
+detox = "*"
+"flake8" = "*"
+pyyaml = "==4.2b4"
+ipdb = "*"
+fast-arrow-auth = {editable = true,path = "."}
+
+[requires]
+python_version = "3.6"
+
+[scripts]
+run_all_examples = "sh ./run_all_examples.sh"
