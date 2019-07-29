@@ -12,7 +12,16 @@ Status](https://coveralls.io/repos/github/westonplatter/fast_arrow_auth/badge.sv
 ## example
 
 ```py
-# @TODO
+# input username and password. Or, alternatively, pull from a config file,
+# see https://github.com/westonplatter/fast_arrow_auth/blob/master/examples/auth_generated_device_token.py
+username = "my_username"
+password = "my_device"
+
+client = Client(username=username, password=password)
+result = client.authenticate()
+
+user = User.fetch(client)
+print("Username = {}".format(user["username"]))
 ```
 
 ## install
