@@ -176,8 +176,7 @@ class Client(object):
                 self.mfa_code = res["mfa_code"]
                 self.scope = res["scope"]
                 self.__set_account_info()
-                filename = "fast_arrow_auth.{}.json".format(self.account_id)
-                self.write_credentials_to_file(filename)
+                self.write_credentials_to_file("fast_arrow_auth.json")
                 return self.authenticated
 
         else:
@@ -187,8 +186,7 @@ class Client(object):
             self.mfa_code = res["mfa_code"]
             self.scope = res["scope"]
             self.__set_account_info()
-            filename = "fast_arrow_auth.{}.json".format(self.account_id)
-            self.write_credentials_to_file(filename)
+            self.write_credentials_to_file("fast_arrow_auth.json")
             return self.authenticated
 
     def __set_account_info(self):
@@ -222,6 +220,7 @@ class Client(object):
         self.refresh_token = res["refresh_token"]
         self.mfa_code = res["mfa_code"]
         self.scope = res["scope"]
+        return True
 
     def logout_oauth2(self):
         '''
