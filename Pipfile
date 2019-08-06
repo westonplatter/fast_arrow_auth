@@ -20,6 +20,7 @@ detox = "*"
 pyyaml = "==4.2b4"
 ipdb = "*"
 fast-arrow-auth = {editable = true,path = "."}
+pyparsing = "*"
 
 [requires]
 python_version = "3.6"
