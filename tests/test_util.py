@@ -1,6 +1,6 @@
 import vcr
 
-from fast_arrow import Client
+from fast_arrow_auth import Client
 
 
 def gen_vcr():
