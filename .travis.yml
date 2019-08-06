@@ -5,7 +5,8 @@ language: python
 python:
   - "3.5"
   - "3.6"
-  - "3.7-dev"
+  - "3.7"
+  - "3.8-dev"
 
 cache:
   pip: false
@@ -19,4 +20,4 @@ script:
   - make ci
 
 after_success:
-  make coveralls
+  make lint
