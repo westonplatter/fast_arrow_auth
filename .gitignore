@@ -2,7 +2,7 @@ config.dev.*
 config.test.ini
 *.csv
 fast_arrow_auth.*
-!fast_arrow_auth.example.{account_id}.json
+!fast_arrow_auth.example.json
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

@@ -15,11 +15,7 @@ coveralls:
 
 .PHONY: lint
 lint:
-	pipenv run tox -e lint
-
-.PHONY: l
-l:
-	pipenv run flake8 --exclude fast_arrow_auth/__init__.py,examples/*,setup.py
+	pipenv run flake8 --exclude fast_arrow_auth/__init__.py,examples/*,build/*,setup.py,.tox/*
 
 
 .PHONY: examples
