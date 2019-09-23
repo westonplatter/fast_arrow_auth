@@ -220,6 +220,7 @@ class Client(object):
         self.refresh_token = res["refresh_token"]
         self.mfa_code = res["mfa_code"]
         self.scope = res["scope"]
+        self.write_credentials_to_file("fast_arrow_auth.json")
         return True
 
     def logout_oauth2(self):
