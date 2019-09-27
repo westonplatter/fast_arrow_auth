@@ -18,6 +18,8 @@ class Client(object):
     def __init__(self, **kwargs):
         self.options = kwargs
         self.device_token = self.options.get("device_token")
+        if self.device_token is None:
+            self.device_token = str(uuid.uuid4())
         self.account_id = None
         self.account_url = None
         self.access_token = None
